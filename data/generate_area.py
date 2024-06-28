@@ -7,9 +7,9 @@ MAGNIFICATION = 2 # 2:1
 IMG_WIDTH = 6624
 IMG_HEIGHT = 5376
 EXTENT = [0, 0, 1024, 1024]
-file_path = "../docs/vector.json"
+file_path = "../vector.json"
 
-img_rgb = cv2.imread('../docs/rkc.png')
+img_rgb = cv2.imread('../rkc.png')
 template = cv2.imread('./zero_zero.png')
 
 res = cv2.matchTemplate(img_rgb, template, cv2.TM_CCOEFF_NORMED)
@@ -72,12 +72,11 @@ for feature in area["features"]:
             "properties": {}
         }
     polygon["geometry"]["coordinates"] = [pixelToMapCoordinates(feature["coordinates"], IMG_WIDTH, IMG_HEIGHT, EXTENT)]
-    try:
-        owner = feature["properties"]["OWNER"]
-    except:
-        owner = "없음"
+    try: owner = feature["properties"]["OWNER"]
+    except: owner = "없음"
     polygon["properties"]["OWNER"] = owner
-    polygon["properties"]["COLOR"] = owner_json[owner]["COLOR"]
+    try: polygon["properties"]["COLOR"] = owner_json[owner]["COLOR"]
+    except: polygon["properties"]["COLOR"] = owner_json["없음"]["COLOR"]
     polygon["id"] = idx
     polygon["properties"]["coordinates"] = str(feature["coordinates"])
     polygons["features"].append(polygon)
