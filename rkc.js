@@ -173,3 +173,20 @@ selectSingleClick.on('select', function (e) {
 //   mapCoord = map.getCoordinateFromPixel(pixel); // Map coordinates
 
 // });
+
+
+
+let button = document.getElementById("control_layer");
+let is_layer_show = true
+button.addEventListener("click", (e) => {
+  if(is_layer_show){
+    is_layer_show = false
+    button.innerHTML = "땅 표시 보이기"
+    map.removeLayer(vector)
+  }
+  else{
+    is_layer_show = true
+    button.innerHTML = "땅 표시 숨기기"
+    map.addLayer(vector)
+  }
+})
