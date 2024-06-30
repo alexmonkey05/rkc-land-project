@@ -56,11 +56,61 @@
             right: 5px;
             z-index: 999;
         }
+
+        #owner_div{
+            display: inline-block;
+            position: fixed;
+            z-index: 1000;
+            background-color: white;
+            min-width: 30px;
+            min-height: 20px;
+            border: 1px solid black;
+            border-radius: 5px;
+            top: 50px;
+            left: 50px;
+            padding: 10px;
+        }
+
+        p{
+            margin: 0;
+        }
+
+        dialog{
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5), 0 10px 10px rgba(0, 0, 0, 0.22);
+            border: 0;
+            border-radius: 20px;
+        }
+        dialog::backdrop{
+            background-color: rgba(0, 0, 0, 0.22);
+        }
     </style>
 
 </head>
 
 <body>
+    <dialog id="add_req">
+        <form action="" method="dialog">
+            <fieldset>
+                <legend>땅 신청서</legend>
+                <ul style="list-style-type: none;">
+                    <li>
+                        <label for="land_idx">땅 번호</label>
+                        <input type="text" id="land_idx" disabled name="idx">
+                    </li>
+                    <li>
+                        <label for="owner">닉네임</label>
+                        <input type="text" id="owner" name="owner">
+                    </li>
+                    <li id="pos_list">
+
+                    </li>
+                </ul>
+            </fieldset>
+            <br>
+            <button value="close">취소</button>
+            <button value="confirm">신청</button>
+        </form>
+    </dialog>
     <button id="control_layer">땅 표시 숨기기</button>
     <div id="map"></div>
     <script src="./rkc.js" type="module"></script>

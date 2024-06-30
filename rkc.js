@@ -4,11 +4,12 @@ import Select from 'ol/interaction/Select.js';
 import VectorLayer from 'ol/layer/Vector.js';
 import VectorSource from 'ol/source/Vector.js';
 import View from 'ol/View.js';
-import {Fill, Stroke, Style, Text} from 'ol/style';
+import {Fill, Stroke, Style, Text} from 'ol/style.js';
 import ImageLayer from 'ol/layer/Image.js';
 import Static from 'ol/source/ImageStatic.js';
 import Projection from 'ol/proj/Projection.js';
 import {getCenter} from 'ol/extent.js';
+import { NoneType } from 'ol/expr/expression';
 
 
 const style = new Style({
@@ -83,7 +84,6 @@ const map = new Map({
     center: getCenter(extent),
     zoom: 2,
     projection: projection,
-    // extent: extent
   }),
 });
 
@@ -95,84 +95,129 @@ const selected = new Style({ // 선택한 영역의 기본 스타일
     color: 'rgba(0, 0, 0, 0.7)',
     width: 2,
   }),
+  text: new Text({
+    text: "없음", // Text to display (city name)
+    font: '18px Calibri,sans-serif', // Font style
+    fill: new Fill({ color: "#000" }), // Text color
+    stroke: new Stroke({ color: '#fff', width: 2 }), // Outline color and width
+    textAlign: 'center', // Text alignment: center
+    textBaseline: 'middle' // Text baseline: middle
+  })
 });
 
 function selectStyle(feature) { // 선택한 영역의 스타일 설정 함수
   const color = feature.get('COLOR') || '#0000ff';
   selected.getFill().setColor(color);
+  const stroke_color = feature.get('STROKE') || '#ffffff';
+  selected.getText().setFill(new Fill({ color: color }));
+  selected.getText().setStroke(new Stroke({ color: stroke_color }));
+  selected.getText().setText(feature.get('OWNER'));
   return selected;
 }
 
 const selectSingleClick = new Select({style: selectStyle});
 
 map.addInteraction(selectSingleClick);
+map.on('moveend', unselect);
 
 function unselect(){
-  console.log("unselect")
   
-  // blankLayer.getSource().clear();
+  var owner_div = document.getElementById("owner_div");
+  if(owner_div != null)
+    owner_div.remove();
 }
 
+function sendPost(url, params) {
+  const data = {
+      headers: {
+        'content-type': 'application/json, charset=UTF-8',
+        origin: 'localhost:5173'
+      },
+      body: params,
+      method: 'POST',
+  };
+
+  fetch(url, data)
+  .then((data) => {return data.json()})
+  .then((res) => {console.log(res)})
+  .catch((error) => console.log(error));
+}
+
+var dialog = document.getElementById("add_req");
+var idx_input = document.getElementById("land_idx");
+var owner_input = document.getElementById("owner")
+const url = "http://localhost:8080/add_req"
+dialog.addEventListener("close", (e) => {
+  if(dialog.returnValue == "confirm")
+    sendPost(url, {
+      idx: land_idx.value,
+      owner: owner_input.value
+    })
+});
+
 selectSingleClick.on('select', function (e) {
-  console.log(e.coordinate)
   var features = e.target.getFeatures()
   var len = features.getLength()
   if(len == 0){ // 선택 해제
     unselect()
     return
   }
-  
-  // const geojsonObject = {
-  //   'type': 'FeatureCollection',
-  //   'crs': {
-  //     'type': 'name',
-  //     'properties': {
-  //       'name': 'EPSG:3857',
-  //     },
-  //   },
-  //   'features': [
-  //     {
-  //       'type': 'Feature',
-  //       'geometry': {
-  //         'type': 'Polygon',
-  //         'coordinates': [
-  //           [
-  //             [mapCoord[0] + 10, mapCoord[1] + 10],
-  //             [mapCoord[0] + 10, mapCoord[1] - 10],
-  //             [mapCoord[0] - 10, mapCoord[1] - 10],
-  //             [mapCoord[0] - 10, mapCoord[1] + 10],
-  //             [mapCoord[0] + 10, mapCoord[1] + 10],
-  //           ],
-  //         ],
-  //       },
-  //     },
-  //   ],
-  // };
-  // blankLayer.setSource(new VectorSource({
-  //   features: new GeoJSON().readFeatures(geojsonObject),
-  // }));
-  var feature;
-  var owner;
-  var coordinate;
-  for(let i = 0; i < len; i++){
-    feature = features.item(i);
-    owner = feature.get('OWNER');
-    // if(owner == undefined){
-    //   unselect()
-    //   return
-    // }
-    coordinate = feature.get('coordinates')
-    console.log(coordinate);
-    alert(owner + "의 땅\n" + coordinate)
+  var feature = features.item(0);
+  var owner = feature.get('OWNER');
+  if(owner == undefined){
+    unselect()
+    return
   }
+
+  var coordinate = feature.get('coordinates')
+  var pos_list = []
+  for(let i = 0; i < coordinate.length - 1; i++){
+    pos_list.push('[' + coordinate[i] + ']<br>')
+  }
+
+  var owner_div = document.getElementById("owner_div");
+  if(owner_div == null){
+    owner_div = document.createElement("div");
+    owner_div.id = "owner_div"
+    
+    document.body.appendChild(owner_div)
+  }
+  
+  var land_id = feature.get('id') + 1
+  if(owner == "없음"){
+    owner = ""
+  } else{
+    owner = "<br>" + owner
+  }
+  owner_div.innerHTML = '<div><b>' + land_id + "번 땅" + owner + '</b></div>\
+        <hr>\
+        <details>\
+            <summary>좌표 보기</summary>\
+            <p> ' + pos_list + '\
+            </p>\
+            <hr>\
+        </details>'
+  if(owner == "없음"){
+    var submit_btn = document.createElement("button")
+    submit_btn.innerHTML = "신청"
+    submit_btn.onclick = () => {
+      idx_input.value = land_id;
+      document.getElementById("pos_list").innerHTML = '<details>\
+              <summary>좌표 보기</summary>\
+              <p> ' + pos_list + '\
+              </p>\
+              <hr>\
+          </details>'
+      unselect()
+      dialog.showModal();
+    }
+    owner_div.appendChild(submit_btn)
+
+  }
+
+  owner_div.style.left = (mouseX - owner_div.offsetWidth / 2) + 'px';
+  owner_div.style.top = (mouseY - owner_div.offsetHeight) + 'px';
 });
-
-// let mapCoord
-// map.on('pointermove', function (event) {
-//   const pixel = event.pixel; // Pixel coordinates of the pointer
-//   mapCoord = map.getCoordinateFromPixel(pixel); // Map coordinates
-
-// });
 
 
 
@@ -189,4 +234,15 @@ button.addEventListener("click", (e) => {
     button.innerHTML = "땅 표시 숨기기"
     map.addLayer(vector)
   }
-})
+});
+
+
+let mouseX
+let mouseY
+document.addEventListener("mousemove", (e) => {
+
+  mouseX = e.clientX;
+
+  mouseY = e.clientY;
+
+});

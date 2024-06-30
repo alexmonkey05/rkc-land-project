@@ -77,8 +77,8 @@ for feature in area["features"]:
     polygon["properties"]["OWNER"] = owner
     try: polygon["properties"]["COLOR"] = owner_json[owner]["COLOR"]
     except: polygon["properties"]["COLOR"] = owner_json["없음"]["COLOR"]
-    polygon["id"] = idx
-    polygon["properties"]["coordinates"] = str(feature["coordinates"])
+    polygon["properties"]["id"] = idx
+    polygon["properties"]["coordinates"] = feature["coordinates"]
     polygons["features"].append(polygon)
     idx += 1
 
