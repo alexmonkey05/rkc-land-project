@@ -9,7 +9,6 @@ import ImageLayer from 'ol/layer/Image.js';
 import Static from 'ol/source/ImageStatic.js';
 import Projection from 'ol/proj/Projection.js';
 import {getCenter} from 'ol/extent.js';
-import { NoneType } from 'ol/expr/expression';
 
 
 const style = new Style({
@@ -58,19 +57,6 @@ const vector = new VectorLayer({ // vector feature에서의 1 = 마크에서의 
     return style;
   },
 });
-
-// const blankLayer = new VectorLayer({
-//   source: new VectorSource(),
-//   style: new Style({
-//     fill: new Fill({
-//       color: '#ffffff',
-//     }),
-//     stroke: new Stroke({
-//       color: 'rgba(0, 0, 0, 1)',
-//       width: 2,
-//     })
-//   })
-// });
 
 
 const map = new Map({

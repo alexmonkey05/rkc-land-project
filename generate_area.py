@@ -7,10 +7,10 @@ MAGNIFICATION = 2 # 2:1
 IMG_WIDTH = 6624
 IMG_HEIGHT = 5376
 EXTENT = [0, 0, 1024, 1024]
-file_path = "../vector.json"
+file_path = "./vector.json"
 
-img_rgb = cv2.imread('../rkc.png')
-template = cv2.imread('./zero_zero.png')
+img_rgb = cv2.imread('./rkc.png')
+template = cv2.imread('./data/zero_zero.png')
 
 res = cv2.matchTemplate(img_rgb, template, cv2.TM_CCOEFF_NORMED)
 
@@ -48,9 +48,9 @@ def pixelToMapCoordinates(pixelCoords, imageWidth, imageHeight, mapExtent):
 
 owner_json = {}
 area = {}
-with open('./owner.json', "r", encoding="utf-8") as json_file:
+with open('./data/owner.json', "r", encoding="utf-8") as json_file:
     owner_json = json.load(json_file)
-with open('./area.json', "r", encoding="utf-8") as json_file:
+with open('./data/area.json', "r", encoding="utf-8") as json_file:
     area = json.load(json_file)
 
 
@@ -84,3 +84,5 @@ for feature in area["features"]:
 
 with open(file_path, 'w', encoding='utf-8') as file:
     json.dump(polygons, file)
+
+print("python done!")

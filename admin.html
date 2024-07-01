@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        p{ margin: 0; }
+
+        #req_div{
+            border: 2px solid black;
+            border-radius: 10px;
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            margin: 15px;
+        }
+    </style>
+</head>
+<body>
+    <button id="update_button">지도 업데이트 하기</button>
+    <div id="forms">
+        <!-- <div id="req_div">
+            <div><b>13번 땅</b></div>
+            <div>40행성</div>
+            <hr>
+            <details>
+                <summary>좌표 보기</summary>
+                <p> [0, 0]
+                </p>
+            </details>
+            <hr>
+            <button value="reject">거절</button>
+            <button value="confirm">승인</button>
+        </div> -->
+    </div>
+</body>
+<script>
+    function sendReq(url, params, method = "GET") {
+        var data = {
+            headers: {
+                'content-type': 'application/json; charset=UTF-8',
+            },
+            method: method,
+        };
+
+        if (method === 'POST') {
+            data.body = JSON.stringify(params);
+        }
+
+
+        return fetch(url, data)
+            .then((data) => data.json())
+            .then((res) => res)
+            .catch((error) => console.log(error));
+    }
+
+
+
+    var forms = document.getElementById("forms");
+    const url = "http://localhost:8080";
+    sendReq(url + "/req", {}, "GET").then((req_list) => {
+        console.log(req_list)
+        if(req_list.length == 0){
+            forms.innerHTML = "<div>요청이 없습니다</div>"
+        }
+        for(var i = 0; i < req_list.length; i++){
+            const req = req_list[i];
+            const coordinate = req.area.coordinates;
+            var pos_list = []
+            for(let i = 0; i < coordinate.length - 1; i++){
+                pos_list.push('[' + coordinate[i] + ']<br>')
+            }
+            var req_div = document.createElement("div");
+            req_div.id = "req_div"
+            req_div.innerHTML = "\
+                <div><b>" + (req.idx + 1) + "번 땅</b></div>\
+                <div>" + req.owner + "</div>\
+                <hr>\
+                <details>\
+                    <summary>좌표 보기</summary>\
+                    <p> " + pos_list + "\
+                    </p>\
+                    </details>\
+                <hr>";
+
+            var reject_btn = document.createElement("button");
+            var confirm_btn = document.createElement("button");
+
+            reject_btn.innerHTML = "거절";
+            confirm_btn.innerHTML = "승인";
+
+            const idx = i
+            reject_btn.addEventListener("click", () => {
+                sendReq(url + "/req/del", {idx: idx}, "POST").then((res) => {
+                    console.log(res)
+                    req_div.remove();
+                    alert("거절되었습니다");
+                });
+            })  
+            confirm_btn.addEventListener("click", () => {
+                sendReq(url + "/req/del", {idx: idx}, "POST").then(() => {
+                    sendReq(url + "/area", {idx: req.idx, owner: req.owner}, 'POST').then(() => {
+                        req_div.remove();
+                        alert("승인되었습니다");
+                    });
+                });
+            })
+
+            req_div.appendChild(reject_btn);
+            req_div.appendChild(confirm_btn);
+
+            forms.appendChild(req_div)
+        }
+    });
+
+
+
+    let update_btn = document.getElementById("update_button");
+    update_btn.addEventListener("click", () => {
+        update_btn.disabled = true
+        sendReq(url + "/update", {}, "POST").then((res) => {
+            console.log(res);
+            update_btn.disabled = false
+            alert("성공적으로 업데이트 했습니다.");
+        })
+    })
+</script>
+</html>
