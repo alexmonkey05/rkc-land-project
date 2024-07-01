@@ -113,31 +113,37 @@ function unselect(){
     owner_div.remove();
 }
 
-function sendPost(url, params) {
-  const data = {
+function sendReq(url, params, method = "GET") {
+  var data = {
       headers: {
-        'content-type': 'application/json, charset=UTF-8',
-        origin: 'localhost:5173'
+          'content-type': 'application/json; charset=UTF-8',
       },
-      body: params,
-      method: 'POST',
+      method: method,
   };
 
-  fetch(url, data)
-  .then((data) => {return data.json()})
-  .then((res) => {console.log(res)})
-  .catch((error) => console.log(error));
+  if (method === 'POST') {
+      data.body = JSON.stringify(params);
+  }
+
+
+  return fetch(url, data)
+      .then((data) => data.json())
+      .then((res) => res)
+      .catch((error) => console.log(error));
 }
 
 var dialog = document.getElementById("add_req");
 var idx_input = document.getElementById("land_idx");
 var owner_input = document.getElementById("owner")
-const url = "http://localhost:8080/add_req"
+const url = "http://localhost:8080/req/add";
+const tlscjdrksmd = true
 dialog.addEventListener("close", (e) => {
   if(dialog.returnValue == "confirm")
-    sendPost(url, {
+    sendReq(url, {
       idx: land_idx.value,
       owner: owner_input.value
+    }, "POST").then((res) => {
+      console.log(res)
     })
 });
 
@@ -183,7 +189,7 @@ selectSingleClick.on('select', function (e) {
             </p>\
             <hr>\
         </details>'
-  if(owner == "없음"){
+  if(owner == "없음" || tlscjdrksmd){
     var submit_btn = document.createElement("button")
     submit_btn.innerHTML = "신청"
     submit_btn.onclick = () => {
@@ -226,9 +232,6 @@ button.addEventListener("click", (e) => {
 let mouseX
 let mouseY
 document.addEventListener("mousemove", (e) => {
-
   mouseX = e.clientX;
-
   mouseY = e.clientY;
-
 });

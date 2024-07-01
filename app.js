@@ -1,12 +1,18 @@
 const express = require('express');
 const fs = require('fs/promises');
 const { spawn } = require('child_process');
+const cors = require('cors')
 
 var app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(__dirname));
+app.use(cors({
+    origin: 'http://localhost:5173',
+    optionsSuccessStatus: 200,
+    Credentials: true,// 응답 헤더에 Access-Control-Allow-Credentials 추가
+  }));
 
 
 const AREA_DIR = "./data/area.json"
