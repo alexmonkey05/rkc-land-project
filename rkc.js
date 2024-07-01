@@ -135,12 +135,12 @@ function sendReq(url, params, method = "GET") {
 var dialog = document.getElementById("add_req");
 var idx_input = document.getElementById("land_idx");
 var owner_input = document.getElementById("owner")
-const url = "http://localhost:8080/req/add";
+const url = "http://localhost:8081/req/add";
 const tlscjdrksmd = true
 dialog.addEventListener("close", (e) => {
   if(dialog.returnValue == "confirm")
     sendReq(url, {
-      idx: land_idx.value,
+      idx: land_idx.value - 1,
       owner: owner_input.value
     }, "POST").then((res) => {
       console.log(res)

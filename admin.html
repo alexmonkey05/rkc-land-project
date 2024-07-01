@@ -57,7 +57,7 @@
 
 
     var forms = document.getElementById("forms");
-    const url = "http://localhost:8080";
+    const url = "http://localhost:8081";
     sendReq(url + "/req", {}, "GET").then((req_list) => {
         console.log(req_list)
         if(req_list.length == 0){
@@ -70,10 +70,10 @@
             for(let i = 0; i < coordinate.length - 1; i++){
                 pos_list.push('[' + coordinate[i] + ']<br>')
             }
-            var req_div = document.createElement("div");
+            const req_div = document.createElement("div");
             req_div.id = "req_div"
             req_div.innerHTML = "\
-                <div><b>" + (req.idx + 1) + "번 땅</b></div>\
+                <div><b>" + (Number(req.idx) + 1) + "번 땅</b></div>\
                 <div>" + req.owner + "</div>\
                 <hr>\
                 <details>\
@@ -93,15 +93,15 @@
             reject_btn.addEventListener("click", () => {
                 sendReq(url + "/req/del", {idx: idx}, "POST").then((res) => {
                     console.log(res)
-                    req_div.remove();
                     alert("거절되었습니다");
+                    location.reload()
                 });
             })  
             confirm_btn.addEventListener("click", () => {
                 sendReq(url + "/req/del", {idx: idx}, "POST").then(() => {
                     sendReq(url + "/area", {idx: req.idx, owner: req.owner}, 'POST').then(() => {
-                        req_div.remove();
                         alert("승인되었습니다");
+                        location.reload()
                     });
                 });
             })

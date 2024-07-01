@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(__dirname));
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: '*',
     optionsSuccessStatus: 200,
     Credentials: true,// 응답 헤더에 Access-Control-Allow-Credentials 추가
   }));
@@ -120,6 +120,6 @@ app.get('/req', (req, res) => { // 신청 getter
     });
 });
 
-app.listen(8080, () => {
+app.listen(8081, () => {
     console.log("Server on!");
 });

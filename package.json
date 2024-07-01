@@ -1,6 +1,5 @@
 {
   "name": "my-app",
-  "homepage": "https://alexmonkey05.github.io/rkc-land-project/",
   "version": "1.0.0",
   "scripts": {
     "start": "vite",
@@ -16,6 +15,6 @@
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "gh-pages": "^6.1.1",
-    "ol": "latest"
+    "ol": "^9.2.4"
   }
 }
