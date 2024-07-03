@@ -1,25 +1,27 @@
-import GeoJSON from 'ol/format/GeoJSON.js';
-import Map from 'ol/Map.js';
-import Select from 'ol/interaction/Select.js';
-import VectorLayer from 'ol/layer/Vector.js';
-import VectorSource from 'ol/source/Vector.js';
-import View from 'ol/View.js';
-import {Fill, Stroke, Style, Text} from 'ol/style.js';
-import ImageLayer from 'ol/layer/Image.js';
-import Static from 'ol/source/ImageStatic.js';
-import Projection from 'ol/proj/Projection.js';
-import {getCenter} from 'ol/extent.js';
+// import GeoJSON from 'ol/format/GeoJSON.js';
+// import Map from 'ol/Map.js';
+// import Select from 'ol/interaction/Select.js';
+// import VectorLayer from 'ol/layer/Vector.js';
+// import VectorSource from 'ol/source/Vector.js';
+// import View from 'ol/View.js';
+// import {Fill, Stroke, Style, Text} from 'ol/style.js';
+// import ImageLayer from 'ol/layer/Image.js';
+// import Static from 'ol/source/ImageStatic.js';
+// import Projection from 'ol/proj/Projection.js';
+// import {getCenter} from 'ol/extent.js';
 
+const url = "http://kite-loggamja-cloud.kro.kr:8081/req/add";
+// const url = "http://localhost:8081/req/add";
 
-const style = new Style({
-  fill: new Fill({
+const style = new ol.style.Style({
+  fill: new ol.style.Fill({
     color: '#eeeeee',
   }),
-  text: new Text({
+  text: new ol.style.Text({
     text: "없음", // Text to display (city name)
     font: '18px Calibri,sans-serif', // Font style
-    fill: new Fill({ color: "#000" }), // Text color
-    stroke: new Stroke({ color: '#fff', width: 2 }), // Outline color and width
+    fill: new ol.style.Fill({ color: "#000" }), // Text color
+    stroke: new ol.style.Stroke({ color: '#fff', width: 2 }), // Outline color and width
     textAlign: 'center', // Text alignment: center
     textBaseline: 'middle' // Text baseline: middle
   })
@@ -29,13 +31,13 @@ const style = new Style({
 
 
 const extent = [0, 0, 1024, 1024];
-const projection = new Projection({
+const projection = new ol.proj.Projection({
   code: 'xkcd-image',
   units: 'pixels',
   extent: extent,
 });
-const imgLayer = new ImageLayer({
-  source: new Static({
+const imgLayer = new ol.layer.Image({
+  source: new ol.source.ImageStatic({
     url: './rkc.png',
     projection: projection,
     imageExtent: extent,
@@ -43,49 +45,50 @@ const imgLayer = new ImageLayer({
 });
 
 
-const vector = new VectorLayer({ // vector feature에서의 1 = 마크에서의 14칸
-  source: new VectorSource({
+const vector = new ol.layer.Vector({ // vector feature에서의 1 = 마크에서의 14칸
+  source: new ol.source.Vector({
       url: 'vector.json',  // The location of the GeoJSON file
-      format: new GeoJSON(),        // Specifies that the data format is GeoJSON
+      format: new ol.format.GeoJSON(),        // Specifies that the data format is GeoJSON
   }),
   style: function (feature) {
     const color = feature.get('COLOR') || '#eeeeee';
     const font_color = feature.get('COLOR') || '#ffffff';
+    const stroke_color = feature.get('STROKE') || '#ffffff';
     style.getFill().setColor(color);
-    style.getText().setFill(new Fill({ color: font_color }));
+    style.getText().getStroke().setColor(stroke_color);
+    style.getText().setFill(new ol.style.Fill({ color: font_color }));
     style.getText().setText(feature.get('OWNER'));
     return style;
   },
 });
 
 
-const map = new Map({
+const map = new ol.Map({
   layers: [
     imgLayer,
     vector,
-    // blankLayer,
   ],
   target: 'map',
-  view: new View({
-    center: getCenter(extent),
+  view: new ol.View({
+    center: ol.extent.getCenter(extent),
     zoom: 2,
     projection: projection,
   }),
 });
 
-const selected = new Style({ // 선택한 영역의 기본 스타일
-  fill: new Fill({
+const selected = new ol.style.Style({ // 선택한 영역의 기본 스타일
+  fill: new ol.style.Fill({
     color: '#eeeeee',
   }),
-  stroke: new Stroke({
+  stroke: new ol.style.Stroke({
     color: 'rgba(0, 0, 0, 0.7)',
     width: 2,
   }),
-  text: new Text({
+  text: new ol.style.Text({
     text: "없음", // Text to display (city name)
     font: '18px Calibri,sans-serif', // Font style
-    fill: new Fill({ color: "#000" }), // Text color
-    stroke: new Stroke({ color: '#fff', width: 2 }), // Outline color and width
+    fill: new ol.style.Fill({ color: "#000" }), // Text color
+    stroke: new ol.style.Stroke({ color: '#fff', width: 2 }), // Outline color and width
     textAlign: 'center', // Text alignment: center
     textBaseline: 'middle' // Text baseline: middle
   })
@@ -95,13 +98,13 @@ function selectStyle(feature) { // 선택한 영역의 스타일 설정 함수
   const color = feature.get('COLOR') || '#0000ff';
   selected.getFill().setColor(color);
   const stroke_color = feature.get('STROKE') || '#ffffff';
-  selected.getText().setFill(new Fill({ color: color }));
-  selected.getText().setStroke(new Stroke({ color: stroke_color }));
+  selected.getText().setFill(new ol.style.Fill({ color: color }));
+  selected.getText().setStroke(new ol.style.Stroke({ color: stroke_color }));
   selected.getText().setText(feature.get('OWNER'));
   return selected;
 }
 
-const selectSingleClick = new Select({style: selectStyle});
+const selectSingleClick = new ol.interaction.Select({style: selectStyle});
 
 map.addInteraction(selectSingleClick);
 map.on('moveend', unselect);
@@ -135,14 +138,14 @@ function sendReq(url, params, method = "GET") {
 var dialog = document.getElementById("add_req");
 var idx_input = document.getElementById("land_idx");
 var owner_input = document.getElementById("owner")
-const url = "http://localhost:8081/req/add";
-const tlscjdrksmd = true
+const tlscjdrksmd = false
 dialog.addEventListener("close", (e) => {
   if(dialog.returnValue == "confirm")
     sendReq(url, {
       idx: land_idx.value - 1,
       owner: owner_input.value
     }, "POST").then((res) => {
+      alert("신청되었습니다")
       console.log(res)
     })
 });
@@ -189,7 +192,7 @@ selectSingleClick.on('select', function (e) {
             </p>\
             <hr>\
         </details>'
-  if(owner == "없음" || tlscjdrksmd){
+  if(owner == "" || tlscjdrksmd){
     var submit_btn = document.createElement("button")
     submit_btn.innerHTML = "신청"
     submit_btn.onclick = () => {

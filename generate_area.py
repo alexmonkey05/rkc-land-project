@@ -1,10 +1,12 @@
+#-*-coding: utf-8-*-
+
 import cv2
 import numpy as np
 import json
 
 
 MAGNIFICATION = 2 # 2:1
-IMG_WIDTH = 6624
+IMG_WIDTH = 6592
 IMG_HEIGHT = 5376
 EXTENT = [0, 0, 1024, 1024]
 file_path = "./vector.json"
@@ -14,13 +16,10 @@ template = cv2.imread('./data/zero_zero.png')
 
 res = cv2.matchTemplate(img_rgb, template, cv2.TM_CCOEFF_NORMED)
 
-# 임계치 정하기 
 threshold = .9
 
-#임계치 이상만 배열에 저장
 loc = np.where(res >= threshold)
 
-#템플릿의 가로(w),세로(h)길이 저장
 h, w = template.shape[:-1]
 center = []
 
@@ -54,7 +53,6 @@ with open('./data/area.json', "r", encoding="utf-8") as json_file:
     area = json.load(json_file)
 
 
-
 polygons = {
     "type": "FeatureCollection",
     "features": []
@@ -77,6 +75,8 @@ for feature in area["features"]:
     polygon["properties"]["OWNER"] = owner
     try: polygon["properties"]["COLOR"] = owner_json[owner]["COLOR"]
     except: polygon["properties"]["COLOR"] = owner_json["없음"]["COLOR"]
+    try: polygon["properties"]["STROKE"] = owner_json[owner]["STROKE"]
+    except: polygon["properties"]["STROKE"] = owner_json["없음"]["STROKE"]
     polygon["properties"]["id"] = idx
     polygon["properties"]["coordinates"] = feature["coordinates"]
     polygons["features"].append(polygon)

@@ -18,14 +18,26 @@ app.use(cors({
 const AREA_DIR = "./data/area.json"
 const REQ_DIR = "./data/req.json"
 
+var is_done = true
 app.post('/update', (req, res) => {
-    const python = spawn('python', ['./generate_area.py']);
+    if(!is_done){
+        res.status(200).send('{"response":"이미 업데이트 하는 중입니다"}').end()
+        return;
+    }
+    is_done = false
+    const python = spawn('python3', ['./generate_area.py']);
     python.stdout.on("data", (data) => {
         console.log(`stdoud: ${data}`);
     });
     python.on('close', () => {
-        console.log("done!");
-        res.status(200).end()
+        is_done = true
+        if(is_done){
+            console.log("done!");
+            res.status(200).send('{"response":"성공적으로 업데이트 했습니다"}').end()
+        } else {
+            console.log("unexpected error");
+            res.status(400).end()
+        }
     })
 })
 
@@ -59,7 +71,7 @@ app.post('/area/del', (req,res)=>{ // area 삭제
         var data = JSON.parse(file_data)
         data.features.splice(idx, 1)
         fs.writeFile(AREA_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
-        res.status(200).end();
+        res.status(200).send('{"response":"성공적으로 삭제했습니다"}').end();
     }).catch((error) => {
         console.error(error);
         res.status(400).end();
@@ -107,8 +119,9 @@ app.get('/req', (req, res) => { // 신청 getter
         var data = JSON.parse(file_data)
         fs.readFile(AREA_DIR, 'utf8').then((file_data) => {
             const area_data = JSON.parse(file_data);
-            for(let i = 0; i < data.features.length; i++)
+            for(let i = 0; i < data.features.length; i++){
                 data.features[i].area = area_data.features[data.features[i].idx];
+            }
             res.status(200).send(data.features);
         }).catch((error) => {
             console.error(error);
@@ -120,6 +133,7 @@ app.get('/req', (req, res) => { // 신청 getter
     });
 });
 
-app.listen(8081, () => {
-    console.log("Server on!");
+const PORT = 8081
+app.listen(PORT, () => {
+    console.log(`Server listen at ${PORT}!`);
 });

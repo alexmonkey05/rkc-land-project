@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>RKC 부동산 승인/거절</title>
     <style>
         p{ margin: 0; }
 
@@ -18,6 +18,8 @@
 </head>
 <body>
     <button id="update_button">지도 업데이트 하기</button>
+    <button id="delete_owner_button">땅 주인 지우기</button>
+    <button id="delete_land_button">땅 지우기</button>
     <div id="forms">
         <!-- <div id="req_div">
             <div><b>13번 땅</b></div>
@@ -35,6 +37,9 @@
     </div>
 </body>
 <script>
+    // const url = "http://localhost:8081";
+    const url = "http://kite-loggamja-cloud.kro.kr:8081";
+    
     function sendReq(url, params, method = "GET") {
         var data = {
             headers: {
@@ -57,7 +62,6 @@
 
 
     var forms = document.getElementById("forms");
-    const url = "http://localhost:8081";
     sendReq(url + "/req", {}, "GET").then((req_list) => {
         console.log(req_list)
         if(req_list.length == 0){
@@ -117,12 +121,68 @@
 
     let update_btn = document.getElementById("update_button");
     update_btn.addEventListener("click", () => {
-        update_btn.disabled = true
+        disable_btn()
         sendReq(url + "/update", {}, "POST").then((res) => {
-            console.log(res);
-            update_btn.disabled = false
-            alert("성공적으로 업데이트 했습니다.");
+            enable_btn();
+            if(res == undefined){
+                alert("예기치 못한 오류가 발생했습니다")
+            } else {
+                alert(res.response);
+            }
         })
     })
+    let delete_owner_btn = document.getElementById("delete_owner_button");
+    delete_owner_btn.addEventListener("click", () => {
+        const idx = Number(prompt("몇번 땅의 주인을 지울 것입니까?")) - 1;
+        if(idx == undefined) {
+            alert("취소하였습니다");
+            return;
+        }
+        disable_btn()
+        const body = {
+            idx: idx,
+            owner:"없음"
+        };
+        sendReq(url + "/area", body, "POST").then((res) => {
+            enable_btn();
+            if(res == undefined){
+                alert("예기치 못한 오류가 발생했습니다");
+            } else {
+                alert("성공적으로 변경했습니다");
+                console.log(res);
+            }
+        })
+    })
+    let delete_land_btn = document.getElementById("delete_land_button");
+    delete_land_btn.addEventListener("click", () => {
+        const idx = Number(prompt("몇번 땅을 지울 것입니까?")) - 1;
+        if(idx == undefined) {
+            alert("취소하였습니다");
+            return;
+        }
+        disable_btn();
+        const body = {
+            idx: idx
+        };
+        sendReq(url + "/area/del", body, "POST").then((res) => {
+            enable_btn()
+            if(res == undefined){
+                alert("예기치 못한 오류가 발생했습니다");
+            } else {
+                alert(res.response);
+            }
+        })
+    });
+
+    function disable_btn(){
+        delete_land_btn.disabled = true;
+        delete_owner_btn.disabled = true;
+        update_btn.disabled = true;
+    }
+    function enable_btn(){
+        delete_land_btn.disabled = false;
+        delete_owner_btn.disabled = false;
+        update_btn.disabled = false;
+    }
 </script>
 </html>
