@@ -3,11 +3,13 @@
 import cv2
 import numpy as np
 import json
+from PIL import Image
+
+im = Image.open('./rkc.png')
+IMG_WIDTH, IMG_HEIGHT = im.size
 
 
 MAGNIFICATION = 2 # 2:1
-IMG_WIDTH = 6592
-IMG_HEIGHT = 5376
 EXTENT = [0, 0, 1024, 1024]
 file_path = "./vector.json"
 
