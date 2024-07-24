@@ -80,6 +80,9 @@
                 <div><b>" + (Number(req.idx) + 1) + "번 땅</b></div>\
                 <div>" + req.owner + "</div>\
                 <hr>\
+                <div>사유</div>\
+                <div>" + req.reason + "</div>\
+                <hr>\
                 <details>\
                     <summary>좌표 보기</summary>\
                     <p> " + pos_list + "\
@@ -102,9 +105,10 @@
                 });
             })  
             confirm_btn.addEventListener("click", () => {
-                sendReq(url + "/req/del", {idx: idx}, "POST").then(() => {
-                    sendReq(url + "/area", {idx: req.idx, owner: req.owner}, 'POST').then(() => {
-                        alert("승인되었습니다");
+                sendReq(url + "/area", {idx: req.idx, owner: req.owner}, 'POST').then((res) => {
+                    console.log(res)
+                    alert("승인되었습니다");
+                    sendReq(url + "/req/del", {idx: idx}, "POST").then(() => {
                         location.reload()
                     });
                 });

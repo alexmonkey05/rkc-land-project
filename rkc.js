@@ -138,12 +138,14 @@ function sendReq(url, params, method = "GET") {
 var dialog = document.getElementById("add_req");
 var idx_input = document.getElementById("land_idx");
 var owner_input = document.getElementById("owner")
+var reason_input = document.getElementById("reason")
 const tlscjdrksmd = false
 dialog.addEventListener("close", (e) => {
   if(dialog.returnValue == "confirm")
     sendReq(url, {
       idx: land_idx.value - 1,
-      owner: owner_input.value
+      owner: owner_input.value,
+      reason: reason_input.value
     }, "POST").then((res) => {
       alert("신청되었습니다")
       console.log(res)
@@ -206,7 +208,7 @@ selectSingleClick.on('select', function (e) {
       unselect()
       dialog.showModal();
     }
-    owner_div.appendChild(submit_btn)
+    // owner_div.appendChild(submit_btn)
 
   }
 

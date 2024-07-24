@@ -2,6 +2,9 @@ const express = require('express');
 const fs = require('fs/promises');
 const { spawn } = require('child_process');
 const cors = require('cors')
+const logger = require("./logger");
+
+logger.info("server on!");
 
 var app = express();
 
@@ -20,6 +23,7 @@ const REQ_DIR = "./data/req.json"
 
 var is_done = true
 app.post('/update', (req, res) => {
+    logger.info("trying to update map");
     if(!is_done){
         res.status(200).send('{"response":"이미 업데이트 하는 중입니다"}').end()
         return;
@@ -32,10 +36,10 @@ app.post('/update', (req, res) => {
     python.on('close', () => {
         is_done = true
         if(is_done){
-            console.log("done!");
+            logger.info("successfully updated");
             res.status(200).send('{"response":"성공적으로 업데이트 했습니다"}').end()
         } else {
-            console.log("unexpected error");
+            logger.error("unexpected error while running generate_area.py");
             res.status(400).end()
         }
     })
@@ -53,12 +57,18 @@ app.get('/area', (req,res)=>{ // area getter
 });
 
 app.post('/area', (req,res)=>{ // area setter
+    logger.info("set area data");
     const idx = req.body.idx
+    if(idx == undefined){ logger.warn("idx is missing", req.body); }
     const owner = req.body.owner
+    if(owner == undefined){ logger.warn("owner is missing", req.body); }
     fs.readFile(AREA_DIR, 'utf8').then((file_data) => {
         var data = JSON.parse(file_data)
         data.features[idx].properties.OWNER = owner
+        data.features[idx].properties.recent_time = Date.now()
+        // 땅 쿨타임 24시간 세팅
         fs.writeFile(AREA_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
+        logger.info(`${owner} got land no.${idx + 1}`);
         res.status(200).send(data.features[idx]);
     }).catch((error) => {
         console.error(error);
@@ -66,11 +76,13 @@ app.post('/area', (req,res)=>{ // area setter
     });
 });
 app.post('/area/del', (req,res)=>{ // area 삭제
+    logger.info("del area data");
     const idx = req.body.idx
     fs.readFile(AREA_DIR, 'utf8').then((file_data) => {
         var data = JSON.parse(file_data)
-        data.features.splice(idx, 1)
+        deleted_area = data.features.splice(idx, 1)
         fs.writeFile(AREA_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
+        logger.info(`land no.${idx + 1} was deleted. the coordinate is ${deleted_area[0]}`);
         res.status(200).send('{"response":"성공적으로 삭제했습니다"}').end();
     }).catch((error) => {
         console.error(error);
@@ -78,10 +90,12 @@ app.post('/area/del', (req,res)=>{ // area 삭제
     });
 });
 app.post('/area/add', (req,res)=>{ // area 추가
+    logger.info("add area data");
     fs.readFile(AREA_DIR, 'utf8').then((file_data) => {
         var data = JSON.parse(file_data)
         data.features.push(req.body)
         fs.writeFile(AREA_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
+        logger.info(`land no.${idx + 1} was added. the coordinate is ${req.body}`);
         res.status(200).end();
     }).catch((error) => {
         console.error(error);
@@ -90,11 +104,13 @@ app.post('/area/add', (req,res)=>{ // area 추가
 });
 
 app.post('/req/del', (req, res) => { // 신청 제거
+    logger.info("del request data");
     const idx = req.body.idx
     fs.readFile(REQ_DIR, 'utf8').then((file_data) => {
         var data = JSON.parse(file_data)
-        data.features.splice(idx, 1);
+        deleted_req = data.features.splice(idx, 1);
         fs.writeFile(REQ_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
+        logger.info(`${deleted_req[0].owner}'s request was deleted`);
         res.status(200).send(data.features);
     }).catch((error) => {
         console.error(error);
@@ -103,10 +119,12 @@ app.post('/req/del', (req, res) => { // 신청 제거
 });
 
 app.post('/req/add', (req, res) => { // 신청 추가
+    logger.info("add request");
     fs.readFile(REQ_DIR, 'utf8').then((file_data) => {
         var data = JSON.parse(file_data)
         data.features.push(req.body)
         fs.writeFile(REQ_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
+        logger.info(`${req.body.owner}'s request was added. land no.${req.body.idx + 1}`);
         res.status(200).send(data.features);
     }).catch((error) => {
         console.error(error);
