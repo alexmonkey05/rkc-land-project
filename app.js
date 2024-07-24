@@ -20,6 +20,7 @@ app.use(cors({
 
 const AREA_DIR = "./data/area.json"
 const REQ_DIR = "./data/req.json"
+const OWNER_DIR = "./data/owner.json"
 
 var is_done = true
 app.post('/update', (req, res) => {
@@ -65,7 +66,6 @@ app.post('/area', (req,res)=>{ // area setter
     fs.readFile(AREA_DIR, 'utf8').then((file_data) => {
         var data = JSON.parse(file_data)
         data.features[idx].properties.OWNER = owner
-        data.features[idx].properties.recent_time = Date.now()
         // 땅 쿨타임 24시간 세팅
         fs.writeFile(AREA_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
         logger.info(`${owner} got land no.${idx + 1}`);
@@ -120,12 +120,30 @@ app.post('/req/del', (req, res) => { // 신청 제거
 
 app.post('/req/add', (req, res) => { // 신청 추가
     logger.info("add request");
-    fs.readFile(REQ_DIR, 'utf8').then((file_data) => {
-        var data = JSON.parse(file_data)
-        data.features.push(req.body)
-        fs.writeFile(REQ_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
-        logger.info(`${req.body.owner}'s request was added. land no.${req.body.idx + 1}`);
-        res.status(200).send(data.features);
+    // 이전 신청으로부터 24시간이 지났는지 판별
+    fs.readFile(OWNER_DIR, 'utf8').then((file_data) => {
+        var data = JSON.parse(file_data);
+        recent_date = new Date(data[req.body.owner].recent_time);
+        now_date = Date.now()
+
+        if(now_date - recent_date < 86400000){ // 24h = 86400000ms
+            logger.info(`${req.body.owner}'s request was failed by 24 hour rule. land no.${req.body.idx + 1}`);
+            res.status(200).send({"success":false,"result":"신청한지 24시간이 지나지 않았습니다"});
+            return;
+        }
+        
+        data[req.body.owner].recent_time = Date.now()
+        fs.writeFile(OWNER_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
+        fs.readFile(REQ_DIR, 'utf8').then((file_data) => {
+            var data = JSON.parse(file_data)
+            data.features.push(req.body)
+            fs.writeFile(REQ_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
+            logger.info(`${req.body.owner}'s request was added. land no.${req.body.idx + 1}`);
+            res.status(200).send({"success":true,"result":data.features});
+        }).catch((error) => {
+            console.error(error);
+            res.status(400).end();
+        });
     }).catch((error) => {
         console.error(error);
         res.status(400).end();

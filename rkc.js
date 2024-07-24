@@ -1,17 +1,6 @@
-// import GeoJSON from 'ol/format/GeoJSON.js';
-// import Map from 'ol/Map.js';
-// import Select from 'ol/interaction/Select.js';
-// import VectorLayer from 'ol/layer/Vector.js';
-// import VectorSource from 'ol/source/Vector.js';
-// import View from 'ol/View.js';
-// import {Fill, Stroke, Style, Text} from 'ol/style.js';
-// import ImageLayer from 'ol/layer/Image.js';
-// import Static from 'ol/source/ImageStatic.js';
-// import Projection from 'ol/proj/Projection.js';
-// import {getCenter} from 'ol/extent.js';
 
-const url = "http://kite-loggamja-cloud.kro.kr:8081/req/add";
-// const url = "http://localhost:8081/req/add";
+const url = "http://kite-loggamja-cloud.kro.kr:8081/";
+// const url = "http://localhost:8081/";
 
 const style = new ol.style.Style({
   fill: new ol.style.Fill({
@@ -142,12 +131,17 @@ var reason_input = document.getElementById("reason")
 const tlscjdrksmd = false
 dialog.addEventListener("close", (e) => {
   if(dialog.returnValue == "confirm")
-    sendReq(url, {
+    sendReq(url + "req/add", {
       idx: land_idx.value - 1,
       owner: owner_input.value,
       reason: reason_input.value
     }, "POST").then((res) => {
-      alert("신청되었습니다")
+      console.log(res)
+      if(res.success){
+        alert("신청되었습니다")
+      } else {
+        alert(res.result)
+      }
       console.log(res)
     })
 });
