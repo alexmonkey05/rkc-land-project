@@ -202,7 +202,7 @@ selectSingleClick.on('select', function (e) {
       unselect()
       dialog.showModal();
     }
-    // owner_div.appendChild(submit_btn)
+    owner_div.appendChild(submit_btn)
 
   }
 

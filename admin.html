@@ -69,10 +69,15 @@
         }
         for(var i = 0; i < req_list.length; i++){
             const req = req_list[i];
-            const coordinate = req.area.coordinates;
-            var pos_list = []
-            for(let i = 0; i < coordinate.length - 1; i++){
-                pos_list.push('[' + coordinate[i] + ']<br>')
+            var pos_list
+            if(req.area){
+                const coordinate = req.area.coordinates;
+                pos_list = []
+                for(let i = 0; i < coordinate.length - 1; i++){
+                    pos_list.push('[' + coordinate[i] + ']<br>')
+                }
+            } else {
+                pos_list = "좌표를 찾을 수 없습니다"
             }
             const req_div = document.createElement("div");
             req_div.id = "req_div"
