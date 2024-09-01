@@ -1,5 +1,5 @@
 
-const url = "http://kite-loggamja-cloud.kro.kr:8081/";
+const url = "http://rkcwebmap.kro.kr:8081/";
 // const url = "http://localhost:8081/";
 
 const style = new ol.style.Style({

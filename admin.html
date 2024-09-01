@@ -20,6 +20,7 @@
     <button id="update_button">지도 업데이트 하기</button>
     <button id="delete_owner_button">땅 주인 지우기</button>
     <button id="delete_land_button">땅 지우기</button>
+    <button id="cooltime_reset">쿨타임 리셋</button>
     <div id="forms">
         <!-- <div id="req_div">
             <div><b>13번 땅</b></div>
@@ -38,7 +39,7 @@
 </body>
 <script>
     // const url = "http://localhost:8081";
-    const url = "http://kite-loggamja-cloud.kro.kr:8081";
+    const url = "http://rkcwebmap.kro.kr:8081";
     
     function sendReq(url, params, method = "GET") {
         var data = {
@@ -182,15 +183,38 @@
             }
         })
     });
+    let cooltime_reset_btn = document.getElementById("cooltime_reset");
+    cooltime_reset_btn.addEventListener("click", () => {
+        const owner = prompt("누구의 쿨타임을 초기화 할 것입니까?");
+        if(owner == undefined) {
+            alert("취소하였습니다");
+            return;
+        }
+        disable_btn()
+        const body = {
+            owner:owner
+        };
+        sendReq(url + "/req/cooltime", body, "POST").then((res) => {
+            enable_btn();
+            if(res == undefined){
+                alert("예기치 못한 오류가 발생했습니다");
+            } else {
+                alert("성공적으로 변경했습니다");
+                console.log(res);
+            }
+        })
+    })
 
     function disable_btn(){
         delete_land_btn.disabled = true;
         delete_owner_btn.disabled = true;
+        cooltime_reset_btn.disabled = true;
         update_btn.disabled = true;
     }
     function enable_btn(){
         delete_land_btn.disabled = false;
         delete_owner_btn.disabled = false;
+        cooltime_reset_btn.disabled = false;
         update_btn.disabled = false;
     }
 </script>

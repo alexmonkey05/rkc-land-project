@@ -21,6 +21,7 @@ app.use(cors({
 const AREA_DIR = "./data/area.json"
 const REQ_DIR = "./data/req.json"
 const OWNER_DIR = "./data/owner.json"
+const COOLTIME = 86400000 // 24h = 86400000ms
 
 var is_done = true
 app.post('/update', (req, res) => {
@@ -47,11 +48,13 @@ app.post('/update', (req, res) => {
 })
 
 app.get('/area', (req,res)=>{ // area getter
-    const idx = req.body.idx
+    const idx = req.query.idx
+    console.log(req.query.idx)
     fs.readFile(AREA_DIR, 'utf8').then((file_data) => {
         const data = JSON.parse(file_data);
         res.status(200).send(data.features[idx]);
     }).catch((error) => {
+        logger.error(error)
         console.error(error)
         res.status(400).end();
     });
@@ -71,6 +74,7 @@ app.post('/area', (req,res)=>{ // area setter
         logger.info(`${owner} got land no.${idx + 1}`);
         res.status(200).send(data.features[idx]);
     }).catch((error) => {
+        logger.error(error)
         console.error(error);
         res.status(400).end();
     });
@@ -85,6 +89,7 @@ app.post('/area/del', (req,res)=>{ // area 삭제
         logger.info(`land no.${idx + 1} was deleted. the coordinate is ${deleted_area[0]}`);
         res.status(200).send('{"response":"성공적으로 삭제했습니다"}').end();
     }).catch((error) => {
+        logger.error(error)
         console.error(error);
         res.status(400).end();
     });
@@ -98,6 +103,7 @@ app.post('/area/add', (req,res)=>{ // area 추가
         logger.info(`land no.${idx + 1} was added. the coordinate is ${req.body}`);
         res.status(200).end();
     }).catch((error) => {
+        logger.error(error)
         console.error(error);
         res.status(400).end();
     });
@@ -113,20 +119,45 @@ app.post('/req/del', (req, res) => { // 신청 제거
         logger.info(`${deleted_req[0].owner}'s request was deleted`);
         res.status(200).send(data.features);
     }).catch((error) => {
+        logger.error(error)
         console.error(error);
         res.status(400).end();
     });
 });
+
+app.post('/req/cooltime', (req, res) => {
+    logger.info("reset cooltime")
+    
+    fs.readFile(OWNER_DIR, 'utf8').then((file_data) => {
+        var data = JSON.parse(file_data);
+        data[req.body.owner].recent_time = Date.now() - COOLTIME
+        fs.writeFile(OWNER_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
+        logger.info(`someone reset ${req.body.owner}'s request cooltime`);
+        res.status(200).send({"success":true,"result":`성공적으로 ${req.body.owner}의 쿨타임을 초기화 했습니다`})
+    }).catch((error) => {
+        logger.error(error)
+        console.error(error);
+        res.status(400).end();
+    });;
+})
 
 app.post('/req/add', (req, res) => { // 신청 추가
     logger.info("add request");
     // 이전 신청으로부터 24시간이 지났는지 판별
     fs.readFile(OWNER_DIR, 'utf8').then((file_data) => {
         var data = JSON.parse(file_data);
-        recent_date = new Date(data[req.body.owner].recent_time);
-        now_date = Date.now()
+        var now_date = Date.now()
+        var recent_date = 0;
+        if(data[req.body.owner] != undefined){
+            recent_date = new Date(data[req.body.owner].recent_time);
+        }
+        else{
+            data[req.body.owner] = {
+                recent_time:0
+            }
+        }
 
-        if(now_date - recent_date < 86400000){ // 24h = 86400000ms
+        if(now_date - recent_date < COOLTIME){
             logger.info(`${req.body.owner}'s request was failed by 24 hour rule. land no.${req.body.idx + 1}`);
             res.status(200).send({"success":false,"result":"신청한지 24시간이 지나지 않았습니다"});
             return;
@@ -141,10 +172,11 @@ app.post('/req/add', (req, res) => { // 신청 추가
             logger.info(`${req.body.owner}'s request was added. land no.${req.body.idx + 1}`);
             res.status(200).send({"success":true,"result":data.features});
         }).catch((error) => {
-            console.error(error);
+            logger.error(error)
             res.status(400).end();
         });
     }).catch((error) => {
+        logger.error(error)
         console.error(error);
         res.status(400).end();
     });
@@ -160,10 +192,12 @@ app.get('/req', (req, res) => { // 신청 getter
             }
             res.status(200).send(data.features);
         }).catch((error) => {
+            logger.error(error)
             console.error(error);
             res.status(400).end();
         });
     }).catch((error) => {
+        logger.error(error)
         console.error(error);
         res.status(400).end();
     });
