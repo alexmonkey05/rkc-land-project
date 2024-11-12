@@ -34,9 +34,27 @@ const imgLayer = new ol.layer.Image({
 });
 
 
+// 땅 레이어
 const vector = new ol.layer.Vector({ // vector feature에서의 1 = 마크에서의 14칸
   source: new ol.source.Vector({
       url: 'vector.json',  // The location of the GeoJSON file
+      format: new ol.format.GeoJSON(),        // Specifies that the data format is GeoJSON
+  }),
+  style: function (feature) {
+    const color = feature.get('COLOR') || '#eeeeee';
+    const font_color = feature.get('COLOR') || '#ffffff';
+    const stroke_color = feature.get('STROKE') || '#ffffff';
+    style.getFill().setColor(color);
+    style.getText().getStroke().setColor(stroke_color);
+    style.getText().setFill(new ol.style.Fill({ color: font_color }));
+    style.getText().setText(feature.get('OWNER'));
+    return style;
+  },
+});
+// 도시 레이어
+const city_vector = new ol.layer.Vector({ // vector feature에서의 1 = 마크에서의 14칸
+  source: new ol.source.Vector({
+      url: 'city_vector.json',  // The location of the GeoJSON file
       format: new ol.format.GeoJSON(),        // Specifies that the data format is GeoJSON
   }),
   style: function (feature) {
@@ -188,7 +206,7 @@ selectSingleClick.on('select', function (e) {
             </p>\
             <hr>\
         </details>'
-  if(owner == "" || tlscjdrksmd){
+  if(owner == "" || tlscjdrksmd){ //신청가능
     var submit_btn = document.createElement("button")
     submit_btn.innerHTML = "신청"
     submit_btn.onclick = () => {
@@ -224,6 +242,22 @@ button.addEventListener("click", (e) => {
     is_layer_show = true
     button.innerHTML = "땅 표시 숨기기"
     map.addLayer(vector)
+  }
+});
+
+
+let is_city_layer_show = false
+let city_button = document.getElementById("control_city_layer")
+city_button.addEventListener("click", (e) => {
+  if(is_city_layer_show){
+    is_city_layer_show = false
+    city_button.innerHTML = "도시 표시 보이기"
+    map.removeLayer(city_vector)
+  }
+  else{
+    is_city_layer_show = true
+    city_button.innerHTML = "도시 표시 숨기기"
+    map.addLayer(city_vector)
   }
 });
 

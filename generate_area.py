@@ -12,6 +12,7 @@ IMG_WIDTH, IMG_HEIGHT = im.size
 MAGNIFICATION = 2 # 2:1
 EXTENT = [0, 0, 1024, 1024]
 file_path = "./vector.json"
+city_file_path = "./city_vector.json"
 
 img_rgb = cv2.imread('./rkc.png')
 template = cv2.imread('./data/zero_zero.png')
@@ -46,21 +47,7 @@ def pixelToMapCoordinates(pixelCoords, imageWidth, imageHeight, mapExtent):
   result = list(map(convert_list, pixelCoords))
   return result
 
-
-owner_json = {}
-area = {}
-with open('./data/owner.json', "r", encoding="utf-8") as json_file:
-    owner_json = json.load(json_file)
-with open('./data/area.json', "r", encoding="utf-8") as json_file:
-    area = json.load(json_file)
-
-
-polygons = {
-    "type": "FeatureCollection",
-    "features": []
-}
-idx = 0
-for feature in area["features"]:
+def generate_polygon(feature, idx, owner_json):
     polygon = {
             "type": "Feature",
             "geometry": {
@@ -81,10 +68,47 @@ for feature in area["features"]:
     except: polygon["properties"]["STROKE"] = owner_json["없음"]["STROKE"]
     polygon["properties"]["id"] = idx
     polygon["properties"]["coordinates"] = feature["coordinates"]
+
+    return polygon
+
+
+owner_json = {}
+city_name_json = {}
+area = {}
+city_area = {}
+with open('./data/owner.json', "r", encoding="utf-8") as json_file:
+    owner_json = json.load(json_file)
+with open('./data/city_name.json', "r", encoding="utf-8") as json_file:
+    city_name_json = json.load(json_file)
+with open('./data/area.json', "r", encoding="utf-8") as json_file:
+    area = json.load(json_file)
+with open('./data/city_area.json', "r", encoding="utf-8") as json_file:
+    city_area = json.load(json_file)
+
+
+polygons = {
+    "type": "FeatureCollection",
+    "features": []
+}
+idx = 0
+for feature in area["features"]:
+    polygon = generate_polygon(feature, idx, owner_json)
     polygons["features"].append(polygon)
+    idx += 1
+
+city_polygons = {
+    "type": "FeatureCollection",
+    "features": []
+}
+idx = 0
+for feature in city_area["features"]:
+    polygon = generate_polygon(feature, idx, city_name_json)
+    city_polygons["features"].append(polygon)
     idx += 1
 
 with open(file_path, 'w', encoding='utf-8') as file:
     json.dump(polygons, file)
+with open(city_file_path, 'w', encoding='utf-8') as file:
+    json.dump(city_polygons, file)
 
 print("python done!")

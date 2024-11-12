@@ -50,11 +50,14 @@
             box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.2);
         }
 
-        #control_layer{
+        .control_layer_btn{
             position: fixed;
             top: 5px;
             right: 5px;
             z-index: 999;
+        }
+        #control_city_layer{
+            right: 120px;
         }
 
         #owner_div{
@@ -117,7 +120,8 @@
             <button value="confirm">신청</button>
         </form>
     </dialog>
-    <button id="control_layer">땅 표시 숨기기</button>
+    <button id="control_layer" class="control_layer_btn">땅 표시 숨기기</button>
+    <button id="control_city_layer" class="control_layer_btn">도시 표시 보이기</button>
     <div id="map"></div>
     <script src="./rkc.js" type="text/javascript"></script>
 </body>
