@@ -3,6 +3,7 @@ const fs = require('fs/promises');
 const { spawn } = require('child_process');
 const cors = require('cors')
 const logger = require("./logger");
+const { features } = require('process');
 
 logger.info("server on!");
 
@@ -86,7 +87,7 @@ app.post('/area/del', (req,res)=>{ // area 삭제
         var data = JSON.parse(file_data)
         deleted_area = data.features.splice(idx, 1)
         fs.writeFile(AREA_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
-        logger.info(`land no.${idx + 1} was deleted. the coordinate is ${deleted_area[0]}`);
+        logger.info(`land no.${idx + 1} was deleted. the start coordinate is ${deleted_area[0].coordinates}`);
         res.status(200).send('{"response":"성공적으로 삭제했습니다"}').end();
     }).catch((error) => {
         logger.error(error)
@@ -98,10 +99,14 @@ app.post('/area/add', (req,res)=>{ // area 추가
     logger.info("add area data");
     fs.readFile(AREA_DIR, 'utf8').then((file_data) => {
         var data = JSON.parse(file_data)
-        data.features.push(req.body)
+        var input_features = req.body.features
+        var input_features_len = input_features.length
+        for(let i = 0; i < input_features_len; i++){
+            data.features.push(req.body.features[i])
+            logger.info(`land no.${data.features.length} was added. the start coordinate is [${req.body.features[i].coordinates[0]}]`);
+        }
         fs.writeFile(AREA_DIR, JSON.stringify(data), {encoding:"utf-8", flag: "w"});
-        logger.info(`land no.${idx + 1} was added. the coordinate is ${req.body}`);
-        res.status(200).end();
+        res.status(200).send({"success":true});
     }).catch((error) => {
         logger.error(error)
         console.error(error);

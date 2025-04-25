@@ -21,6 +21,9 @@
     <button id="delete_owner_button">땅 주인 지우기</button>
     <button id="delete_land_button">땅 지우기</button>
     <button id="cooltime_reset">쿨타임 리셋</button>
+    <br>
+    <input type="file" id="add_land_input">
+    <button id="add_land_button">땅 추가하기</button>
     <div id="forms">
         <!-- <div id="req_div">
             <div><b>13번 땅</b></div>
@@ -203,19 +206,47 @@
                 console.log(res);
             }
         })
-    })
+    });
+
+    const reader = new FileReader();
+    let add_land_button = document.getElementById("add_land_button")
+    let add_land_input = document.getElementById("add_land_input")
+    add_land_button.addEventListener("click", () => {
+        let files = add_land_input.files
+        if(!files){
+            alert("파일을 선택해주세요")
+            return 0
+        }
+        reader.readAsText(files[0]);
+    });
+    reader.onload = () => {
+        disable_btn();
+        const body = JSON.parse(reader.result)
+        console.log(body);
+        sendReq(url + "/area/add", body, "POST").then((res) => {
+            enable_btn();
+            if(res == undefined){
+                alert("예기치 못한 오류가 발생했습니다");
+            } else {
+                alert("성공적으로 변경했습니다");
+                console.log(res);
+            }
+        })
+    };
 
     function disable_btn(){
         delete_land_btn.disabled = true;
         delete_owner_btn.disabled = true;
         cooltime_reset_btn.disabled = true;
         update_btn.disabled = true;
+        add_land_button.disabled = true;
     }
     function enable_btn(){
         delete_land_btn.disabled = false;
         delete_owner_btn.disabled = false;
         cooltime_reset_btn.disabled = false;
         update_btn.disabled = false;
+        add_land_button.disabled = false;
     }
 </script>
 </html>

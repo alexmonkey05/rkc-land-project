@@ -58,6 +58,7 @@ def generate_polygon(feature, idx, owner_json):
             },
             "properties": {}
         }
+    print(feature)
     polygon["geometry"]["coordinates"] = [pixelToMapCoordinates(feature["coordinates"], IMG_WIDTH, IMG_HEIGHT, EXTENT)]
     try: owner = feature["properties"]["OWNER"]
     except: owner = "없음"
